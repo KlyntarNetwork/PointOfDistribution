@@ -50,9 +50,9 @@ let server = http.createServer({},(_,response)=>{
 })
 
 
-server.listen(CONFIGURATION.WEBSOCKET_PORT,CONFIGURATION.WEBSOCKET_INTERFACE,()=>
+server.listen(CONFIGS.WEBSOCKET_PORT,CONFIGS.WEBSOCKET_INTERFACE,()=>
 
-    console.log(`[*] Websocket server for point of distribution was activated on ${CONFIGURATION.WEBSOCKET_INTERFACE}:${CONFIGURATION.WEBSOCKET_PORT}`)
+    console.log(`[*] Websocket server for point of distribution was activated on ${CONFIGS.WEBSOCKET_INTERFACE}:${CONFIGS.WEBSOCKET_PORT}`)
     
 )
 
@@ -112,10 +112,22 @@ podWebsocketServer.on('request',request=>{
 
 // Connect to source server
 
-client.connect(CONFIGS.SOURCE_URL,'echo-protocol')
+function connectToSource() {
+    client.connect(CONFIGS.SOURCE_URL, 'echo-protocol')
+}
 
+
+client.on('connectFailed', (error) => {
+
+    console.log(`[*] Connection failed: ${error.message}`)
+    
+    setTimeout(connectToSource, 5000)
+
+})
 
 client.on('connect',connection=>{
+
+    console.log(`[*] Connected to ${CONFIGS.SOURCE_URL}`)
 
     connection.on('message',async message=>{
 
@@ -172,3 +184,6 @@ client.on('connect',connection=>{
     connection.on('error',()=>console.log('Connection error'))
 
 })
+
+
+connectToSource()

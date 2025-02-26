@@ -1,6 +1,6 @@
 {
-    "SOURCE_URL":"",
-    "BLOCK_GENERATOR_PUBKEY":"",
-    "WEBSOCKET_INTERFACE":"",
-    "WEBSOCKET_PORT":""
+    "SOURCE_URL":"ws://localhost:9999",
+    "BLOCK_GENERATOR_PUBKEY":"9GQ46rqY238rk2neSwgidap9ww5zbAN4dyqyC7j5ZnBK",
+    "WEBSOCKET_INTERFACE":"0.0.0.0",
+    "WEBSOCKET_PORT":"7667"
 }

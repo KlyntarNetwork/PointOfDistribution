@@ -9,7 +9,7 @@ export let returnBlocksDataForPod = async(data,connection) => {
     let responseStructure = {}
 
     
-    for(let i=1 ; i<300 ; i++){
+    for(let i = 1 ; i < 500 ; i++){
 
         let relativeIndex = data.fromRid+i
 
@@ -49,7 +49,7 @@ export let returnBlocksRange = async(data,connection) => {
     }
 
     
-    for(let i=1;i<50;i++){
+    for(let i = 1 ; i < 500 ; i++){
 
         let blockIdToFind = data.epochIndex+':'+CONFIGS.BLOCK_GENERATOR_PUBKEY+':'+(data.hasUntilHeight+i)
 
