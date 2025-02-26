@@ -1,5 +1,6 @@
 {
     "SOURCE_URL":"",
+    "BLOCK_GENERATOR_PUBKEY":"",
     "WEBSOCKET_INTERFACE":"",
     "WEBSOCKET_PORT":""
 }

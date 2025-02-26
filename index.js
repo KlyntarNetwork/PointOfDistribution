@@ -1,14 +1,45 @@
+import {returnBlocksDataForPod, returnBlocksRange} from './functions.js'
+
+import {fileURLToPath} from 'url'
+
 import WS from 'websocket'
 
 import level from 'level'
 
 import http from 'http'
 
+import path from 'path'
+
+import fs from 'fs'
 
 
 
 
 let WebSocketServer = WS.server
+
+let WebSocketClient = WS.client
+
+
+let __filename = fileURLToPath(import.meta.url)
+
+let __dirname = path.dirname(__filename)
+
+let configsPath = path.join(__dirname, 'configs.json')
+
+
+let CONFIGS = JSON.parse(fs.readFileSync(configsPath, 'utf8'))
+
+let BLOCKS_DATA = level('BLOCKS_DATA')
+    
+export {CONFIGS, BLOCKS_DATA}
+
+
+
+
+let client = new WebSocketClient({})
+
+
+// Start API server
 
 let server = http.createServer({},(_,response)=>{
 
@@ -58,7 +89,11 @@ podWebsocketServer.on('request',request=>{
 
                 returnBlocksRange(data,connection)
 
-            }else{
+            } else if(data.route==='get_blocks_for_pod'){
+
+                returnBlocksDataForPod(data,connection)
+
+            } else{
 
                 connection.close(1337,'No available route')
 
@@ -71,5 +106,69 @@ podWebsocketServer.on('request',request=>{
     connection.on('close',()=>{})
 
     connection.on('error',()=>{})
+
+})
+
+
+// Connect to source server
+
+client.connect(CONFIGS.SOURCE_URL,'echo-protocol')
+
+
+client.on('connect',connection=>{
+
+    connection.on('message',async message=>{
+
+        if(message.type === 'utf8'){
+
+            let parsedData = JSON.parse(message.utf8Data)
+
+            if(parsedData.finalizationProof && proofsGrabber.huntingForHash === parsedData.votedForHash && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
+
+                if(parsedData.type === 'tmb'){
+
+                    let dataThatShouldBeSigned = proofsGrabber.acceptedHash+proofsGrabber.huntingForBlockID+proofsGrabber.huntingForHash+epochFullID
+        
+                    let finalizationProofIsOk = FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID) && epochHandler.quorum.includes(parsedData.voter) && await verifyEd25519(dataThatShouldBeSigned,parsedData.finalizationProof,parsedData.voter)
+
+                    if(finalizationProofIsOk && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
+        
+                        FINALIZATION_PROOFS.get(proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.finalizationProof)
+        
+                    }
+
+                } else if(parsedData.tmbProof) {
+
+                    // Verify the finalization proof
+        
+                    let dataThatShouldBeSigned = proofsGrabber.acceptedHash+proofsGrabber.huntingForBlockID+proofsGrabber.huntingForHash+epochFullID
+        
+                    let finalizationProofIsOk = FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID) && epochHandler.quorum.includes(parsedData.voter) && await verifyEd25519(dataThatShouldBeSigned,parsedData.finalizationProof,parsedData.voter)
+
+                    // Now verify the TMB proof(that block was delivered)
+
+                    dataThatShouldBeSigned += 'VALID_BLOCK_RECEIVED'
+
+                    let tmbProofIsOk = await verifyEd25519(dataThatShouldBeSigned,parsedData.tmbProof,parsedData.voter)
+            
+                    if(finalizationProofIsOk && tmbProofIsOk && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
+        
+                        FINALIZATION_PROOFS.get(proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.finalizationProof)
+
+                        FINALIZATION_PROOFS.get('TMB:'+proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.tmbProof)
+        
+                    }
+
+                }
+
+            }
+                                
+        }        
+
+    })
+
+    connection.on('close',()=>console.log('Connection closed'))
+      
+    connection.on('error',()=>console.log('Connection error'))
 
 })
