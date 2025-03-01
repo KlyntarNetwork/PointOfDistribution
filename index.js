@@ -93,6 +93,10 @@ podWebsocketServer.on('request',request=>{
 
                 returnBlocksDataForPod(data,connection)
 
+            }else if(data.route==='get_mempool'){
+
+                returnBlocksDataForPod(data,connection)
+
             } else{
 
                 connection.close(1337,'No available route')
@@ -129,50 +133,20 @@ client.on('connect',connection=>{
 
     console.log(`[*] Connected to ${CONFIGS.SOURCE_URL}`)
 
+
+
+
     connection.on('message',async message=>{
 
         if(message.type === 'utf8'){
 
             let parsedData = JSON.parse(message.utf8Data)
 
-            if(parsedData.finalizationProof && proofsGrabber.huntingForHash === parsedData.votedForHash && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
+            if(parsedData.route === 'mempool'){
 
-                if(parsedData.type === 'tmb'){
+            } else if(parsedData.route === 'blocks_for_pod'){
 
-                    let dataThatShouldBeSigned = proofsGrabber.acceptedHash+proofsGrabber.huntingForBlockID+proofsGrabber.huntingForHash+epochFullID
-        
-                    let finalizationProofIsOk = FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID) && epochHandler.quorum.includes(parsedData.voter) && await verifyEd25519(dataThatShouldBeSigned,parsedData.finalizationProof,parsedData.voter)
-
-                    if(finalizationProofIsOk && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
-        
-                        FINALIZATION_PROOFS.get(proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.finalizationProof)
-        
-                    }
-
-                } else if(parsedData.tmbProof) {
-
-                    // Verify the finalization proof
-        
-                    let dataThatShouldBeSigned = proofsGrabber.acceptedHash+proofsGrabber.huntingForBlockID+proofsGrabber.huntingForHash+epochFullID
-        
-                    let finalizationProofIsOk = FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID) && epochHandler.quorum.includes(parsedData.voter) && await verifyEd25519(dataThatShouldBeSigned,parsedData.finalizationProof,parsedData.voter)
-
-                    // Now verify the TMB proof(that block was delivered)
-
-                    dataThatShouldBeSigned += 'VALID_BLOCK_RECEIVED'
-
-                    let tmbProofIsOk = await verifyEd25519(dataThatShouldBeSigned,parsedData.tmbProof,parsedData.voter)
-            
-                    if(finalizationProofIsOk && tmbProofIsOk && FINALIZATION_PROOFS.has(proofsGrabber.huntingForBlockID)){
-        
-                        FINALIZATION_PROOFS.get(proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.finalizationProof)
-
-                        FINALIZATION_PROOFS.get('TMB:'+proofsGrabber.huntingForBlockID).set(parsedData.voter,parsedData.tmbProof)
-        
-                    }
-
-                }
-
+                
             }
                                 
         }        
