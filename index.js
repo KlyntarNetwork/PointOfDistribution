@@ -1,4 +1,4 @@
-import {returnBlocksDataForPod, returnBlocksRange} from './functions.js'
+import {returnBlocksDataForPod, returnBlocksRange, returnMempool, setToMempool} from './functions.js'
 
 import {fileURLToPath} from 'url'
 
@@ -34,6 +34,7 @@ let BLOCKS_DATA = level('BLOCKS_DATA')
 export {CONFIGS, BLOCKS_DATA}
 
 
+let RELATIVE_INDEX = await BLOCKS_DATA.get('RELATIVE_INDEX').catch(_=>0)
 
 
 let client = new WebSocketClient({})
@@ -95,7 +96,11 @@ podWebsocketServer.on('request',request=>{
 
             }else if(data.route==='get_mempool'){
 
-                returnBlocksDataForPod(data,connection)
+                returnMempool(data,connection)
+
+            } else if(data.route==='set_to_mempool'){
+
+                setToMempool(data,connection)
 
             } else{
 
@@ -121,6 +126,22 @@ function connectToSource() {
 }
 
 
+function sendRequestForNewBlocksAndAfps(connection){
+
+    // Send data like this {route:'get_blocks_for_pod', fromRid:'RELATIVE_INDEX'}
+
+    let dataToSend = {
+        
+        route:'get_blocks_for_pod',
+        
+        fromRid: RELATIVE_INDEX
+    }
+
+    connection.sendUTF(JSON.stringify(dataToSend))
+
+}
+
+
 client.on('connectFailed', (error) => {
 
     console.log(`[*] Connection failed: ${error.message}`)
@@ -133,21 +154,28 @@ client.on('connect',connection=>{
 
     console.log(`[*] Connected to ${CONFIGS.SOURCE_URL}`)
 
-
-
+    console.log(`[*] Going to load from ${RELATIVE_INDEX}`)
+    
+    sendRequestForNewBlocksAndAfps(connection)
 
     connection.on('message',async message=>{
 
         if(message.type === 'utf8'){
 
-            let parsedData = JSON.parse(message.utf8Data)
+            let parsedData = JSON.parse(message.utf8Data) // structure is {'N':{block,afp},'N+1':{block,afp},...}
 
-            if(parsedData.route === 'mempool'){
+            // Just parse, store and increase the RELATIVE_INDEX
 
-            } else if(parsedData.route === 'blocks_for_pod'){
+            // Set mutex here
 
-                
+            for(let i = RELATIVE_INDEX ; i < RELATIVE_INDEX + 300 ; i++){
+
+                // Verify the block signature and AFP
+                // Then, if both are OK - just store it
+
             }
+
+            sendRequestForNewBlocksAndAfps(connection)
                                 
         }        
 

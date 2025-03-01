@@ -41,6 +41,12 @@ export let returnMempool = async(data,connection) => {
 }
 
 
+export let setToMempool = async(data,connection) => {
+
+
+}
+
+
 
 export let returnBlocksRange = async(data,connection) => {
 
