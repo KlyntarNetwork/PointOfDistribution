@@ -58,15 +58,15 @@ let server = http.createServer((req, res) => {
 
                 setToMempool(transaction)
                 
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                
-                res.end(JSON.stringify({ status: 'success', message: 'Transaction received' }));
+                res.writeHead(200, { 'Content-Type': 'application/json' })
+
+                res.end({status:'OK'})
             
             } catch (error) {
             
-                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.writeHead(400, { 'Content-Type': 'application/json' })
                 
-                res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
+                res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }))
             
             }
 
@@ -75,7 +75,8 @@ let server = http.createServer((req, res) => {
     } else {
     
         res.writeHead(404, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ status: 'error', message: 'Not Found' }))
+
+        res.end(JSON.stringify({err:'Wrong route'}))
     
     }
 
@@ -196,10 +197,30 @@ client.on('connect',connection=>{
 
             // Set mutex here
 
+            let atomicBatch = BLOCKS_DATA.batch()
+
             for(let i = RELATIVE_INDEX ; i < RELATIVE_INDEX + 300 ; i++){
 
-                // Verify the block signature and AFP
-                // Then, if both are OK - just store it
+                let data = parsedData[i]
+
+                if(data.block && data.afp){
+
+                    let [,epochID] = data.block.epoch.split('#')
+
+                    let blockID = `${epochID}:${block.creator}:${block.index}`
+
+                    // Verify the block signature and AFP
+                    // Then, if both are OK - just store it
+
+                    atomicBatch.put(blockID,data.block)
+
+                    atomicBatch.put('AFP:'+blockID,data.afp)
+
+                    RELATIVE_INDEX++
+
+                    atomicBatch.put('RELATIVE_INDEX',RELATIVE_INDEX)
+
+                }
 
             }
 
