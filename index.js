@@ -42,14 +42,44 @@ let client = new WebSocketClient({})
 
 // Start API server
 
-let server = http.createServer({},(_,response)=>{
+let server = http.createServer((req, res) => {
 
-    response.writeHead(404)
+    if (req.method === 'POST' && req.url === '/transaction') {
 
-    response.end()
+        let body = ''
+        
+        req.on('data', chunk => body += chunk.toString())
+        
+        req.on('end', () => {
+            
+            try {
+                
+                const transaction = JSON.parse(body)
+
+                setToMempool(transaction)
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                
+                res.end(JSON.stringify({ status: 'success', message: 'Transaction received' }));
+            
+            } catch (error) {
+            
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                
+                res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
+            
+            }
+
+        })
+
+    } else {
+    
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ status: 'error', message: 'Not Found' }))
+    
+    }
 
 })
-
 
 server.listen(CONFIGS.WEBSOCKET_PORT,CONFIGS.WEBSOCKET_INTERFACE,()=>
 
@@ -94,13 +124,9 @@ podWebsocketServer.on('request',request=>{
 
                 returnBlocksDataForPod(data,connection)
 
-            }else if(data.route==='get_mempool'){
+            } else if(data.route==='get_mempool'){
 
                 returnMempool(data,connection)
-
-            } else if(data.route==='set_to_mempool'){
-
-                setToMempool(data,connection)
 
             } else{
 
@@ -122,7 +148,9 @@ podWebsocketServer.on('request',request=>{
 // Connect to source server
 
 function connectToSource() {
+
     client.connect(CONFIGS.SOURCE_URL, 'echo-protocol')
+
 }
 
 

@@ -41,7 +41,7 @@ export let returnMempool = async(data,connection) => {
 }
 
 
-export let setToMempool = async(data,connection) => {
+export let setToMempool = async transaction => {
 
 
 }
