@@ -29,7 +29,7 @@ let configsPath = path.join(__dirname, 'configs.json')
 
 let CONFIGS = JSON.parse(fs.readFileSync(configsPath, 'utf8'))
 
-let BLOCKS_DATA = level('BLOCKS_DATA')
+let BLOCKS_DATA = level('BLOCKS_DATA',{valueEncoding: 'json'})
     
 export {CONFIGS, BLOCKS_DATA}
 
@@ -191,7 +191,7 @@ client.on('connect',connection=>{
 
         if(message.type === 'utf8'){
 
-            let parsedData = JSON.parse(message.utf8Data) // structure is {'N':{block,afp},'N+1':{block,afp},...}
+            let parsedData = JSON.parse(message.utf8Data) // structure is {'N':{block,afp},'N+1':{block,afp},...}            
 
             // Just parse, store and increase the RELATIVE_INDEX
 
@@ -199,40 +199,61 @@ client.on('connect',connection=>{
 
             let atomicBatch = BLOCKS_DATA.batch()
 
-            for(let i = RELATIVE_INDEX ; i < RELATIVE_INDEX + 300 ; i++){
+            for(let i = RELATIVE_INDEX ; i <= RELATIVE_INDEX + 500 ; i++){
 
-                let data = parsedData[i]
+                let data = parsedData[`RID:${i}`]
+                
+                if(data){
 
-                if(data.block && data.afp){
+                    if(data.block){
 
-                    let [,epochID] = data.block.epoch.split('#')
+                        let [,epochID] = data.block.epoch.split('#')
+    
+                        let blockID = `${epochID}:${data.block.creator}:${data.block.index}`
+    
+                        atomicBatch.put(blockID,data.block)
 
-                    let blockID = `${epochID}:${block.creator}:${block.index}`
+                        if(data.afpForBlock){    
+                        
+                            atomicBatch.put('AFP:'+blockID, data.afpForBlock)
+            
+                        }
 
-                    // Verify the block signature and AFP
-                    // Then, if both are OK - just store it
+                        console.log(`[*] Locally have untill RID: ${RELATIVE_INDEX} => ${data.block.index}`)
 
-                    atomicBatch.put(blockID,data.block)
+                        RELATIVE_INDEX++
+        
+                        atomicBatch.put('RELATIVE_INDEX',RELATIVE_INDEX)
 
-                    atomicBatch.put('AFP:'+blockID,data.afp)
+                    }
 
-                    RELATIVE_INDEX++
-
-                    atomicBatch.put('RELATIVE_INDEX',RELATIVE_INDEX)
-
-                }
+                } else break
 
             }
 
-            sendRequestForNewBlocksAndAfps(connection)
+            await atomicBatch.write()
+
+            setTimeout(()=>sendRequestForNewBlocksAndAfps(connection),1000)
                                 
         }        
 
     })
 
-    connection.on('close',()=>console.log('Connection closed'))
-      
-    connection.on('error',()=>console.log('Connection error'))
+    connection.on('close',()=>{
+
+        console.log(`[*] Connection closed, try reconnect`)
+
+        setTimeout(connectToSource, 5000)
+
+    })
+
+    connection.on('error',()=>{
+
+        console.log(`[*] Error with connection, try reconnect`)
+
+        setTimeout(connectToSource, 5000)
+
+    })
 
 })
 
