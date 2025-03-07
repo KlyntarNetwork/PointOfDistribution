@@ -52,9 +52,9 @@ export let returnBlocksRange = async(data,connection) => {
     
     for(let i = 1 ; i < 500 ; i++){
 
-        let blockIdToFind = data.epochIndex+':'+CONFIGS.BLOCK_GENERATOR_PUBKEY+':'+(data.hasUntilHeight+i)
+        let blockIdToFind = data.epochIndex+':'+CONFIGS.SEQUENCER_PUBKEY+':'+(data.hasUntilHeight+i)
 
-        let blockIdToFindAfp = data.epochIndex+':'+CONFIGS.BLOCK_GENERATOR_PUBKEY+':'+(data.hasUntilHeight+i+1)
+        let blockIdToFindAfp = data.epochIndex+':'+CONFIGS.SEQUENCER_PUBKEY+':'+(data.hasUntilHeight+i+1)
 
         let block = await BLOCKS_DATA.get(blockIdToFind).catch(()=>null)
 
