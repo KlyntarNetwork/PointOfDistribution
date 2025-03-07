@@ -1,4 +1,4 @@
-import {returnBlocksDataForPod, returnBlocksRange, returnMempool, setToMempool} from './functions.js'
+import {returnBlocksDataForPod, returnBlocksRange} from './functions.js'
 
 import {fileURLToPath} from 'url'
 
@@ -42,43 +42,11 @@ let client = new WebSocketClient({})
 
 // Start API server
 
-let server = http.createServer((req, res) => {
+let server = http.createServer({},(_,response)=>{
 
-    if (req.method === 'POST' && req.url === '/transaction') {
+    response.writeHead(404)
 
-        let body = ''
-        
-        req.on('data', chunk => body += chunk.toString())
-        
-        req.on('end', () => {
-            
-            try {
-                
-                const transaction = JSON.parse(body)
-
-                setToMempool(transaction)
-                
-                res.writeHead(200, { 'Content-Type': 'application/json' })
-
-                res.end({status:'OK'})
-            
-            } catch (error) {
-            
-                res.writeHead(400, { 'Content-Type': 'application/json' })
-                
-                res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }))
-            
-            }
-
-        })
-
-    } else {
-    
-        res.writeHead(404, { 'Content-Type': 'application/json' })
-
-        res.end(JSON.stringify({err:'Wrong route'}))
-    
-    }
+    response.end()
 
 })
 
@@ -124,10 +92,6 @@ podWebsocketServer.on('request',request=>{
             } else if(data.route==='get_blocks_for_pod'){
 
                 returnBlocksDataForPod(data,connection)
-
-            } else if(data.route==='get_mempool'){
-
-                returnMempool(data,connection)
 
             } else{
 

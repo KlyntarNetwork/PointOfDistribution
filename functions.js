@@ -34,18 +34,6 @@ export let returnBlocksDataForPod = async(data,connection) => {
 }
 
 
-export let returnMempool = async(data,connection) => {
-
-    connection.sendUTF(JSON.stringify([]))
-
-}
-
-
-export let setToMempool = async transaction => {
-
-
-}
-
 
 
 export let returnBlocksRange = async(data,connection) => {
