@@ -29,12 +29,12 @@ let configsPath = path.join(__dirname, 'configs.json')
 
 let CONFIGS = JSON.parse(fs.readFileSync(configsPath, 'utf8'))
 
-let BLOCKS_DATA = level('BLOCKS_DATA',{valueEncoding: 'json'})
+let DATABASE = level('DATABASE',{valueEncoding: 'json'})
     
-export {CONFIGS, BLOCKS_DATA}
+export {CONFIGS, DATABASE}
 
 
-let RELATIVE_INDEX = await BLOCKS_DATA.get('RELATIVE_INDEX').catch(_=>0)
+let RELATIVE_INDEX = await DATABASE.get('RELATIVE_INDEX').catch(_=>0)
 
 
 let client = new WebSocketClient({})
@@ -161,7 +161,7 @@ client.on('connect',connection=>{
 
             // Set mutex here
 
-            let atomicBatch = BLOCKS_DATA.batch()
+            let atomicBatch = DATABASE.batch()
 
             for(let i = RELATIVE_INDEX ; i <= RELATIVE_INDEX + 500 ; i++){
 

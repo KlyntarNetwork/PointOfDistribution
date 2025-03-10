@@ -1,4 +1,4 @@
-import { BLOCKS_DATA, CONFIGS } from "./index.js"
+import { DATABASE, CONFIGS } from "./index.js"
 
 
 export let returnBlocksDataForPod = async(data,connection) => {
@@ -13,13 +13,13 @@ export let returnBlocksDataForPod = async(data,connection) => {
 
         let relativeIndex = data.fromRid+i
 
-        let blockIdByRelativeIndex = await BLOCKS_DATA.get(relativeIndex).catch(()=>null)
+        let blockIdByRelativeIndex = await DATABASE.get(relativeIndex).catch(()=>null)
 
         if(blockIdByRelativeIndex){
 
-            let block = await BLOCKS_DATA.get(blockIdByRelativeIndex).catch(()=>null)
+            let block = await DATABASE.get(blockIdByRelativeIndex).catch(()=>null)
 
-            let afpForBlock = await BLOCKS_DATA.get('AFP:'+blockIdByRelativeIndex).catch(()=>null)
+            let afpForBlock = await DATABASE.get('AFP:'+blockIdByRelativeIndex).catch(()=>null)
     
             responseStructure[relativeIndex] = {block,afpForBlock}
             
@@ -56,9 +56,9 @@ export let returnBlocksRange = async(data,connection) => {
 
         let blockIdToFindAfp = data.epochIndex+':'+CONFIGS.SEQUENCER_PUBKEY+':'+(data.hasUntilHeight+i+1)
 
-        let block = await BLOCKS_DATA.get(blockIdToFind).catch(()=>null)
+        let block = await DATABASE.get(blockIdToFind).catch(()=>null)
 
-        let afpForBlock = await BLOCKS_DATA.get('AFP:'+blockIdToFindAfp).catch(()=>null)
+        let afpForBlock = await DATABASE.get('AFP:'+blockIdToFindAfp).catch(()=>null)
 
         if(block && afpForBlock){
 
