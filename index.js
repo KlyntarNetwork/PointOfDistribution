@@ -36,9 +36,9 @@ let DATABASE = level('DATABASE',{valueEncoding: 'json'})
 export {CONFIGS, DATABASE}
 
 
-let HEIGHT_RELATIVE_INDEX = await DATABASE.get('HEIGHT_RELATIVE_INDEX').catch(_=>0)
+let LOADED_UP_TO_BLOCK_HEIGHT = await DATABASE.get('LOADED_UP_TO_BLOCK_HEIGHT').catch(_=>0)
 
-let AEFP_RELATIVE_INDEX = await DATABASE.get('AEFP_RELATIVE_INDEX').catch(_=>0)
+let LOADED_UP_TO_AEFP_INDEX = await DATABASE.get('LOADED_UP_TO_AEFP_INDEX').catch(_=>0)
 
 
 let client = new WebSocketClient({})
@@ -125,13 +125,13 @@ function connectToSource() {
 
 function sendRequestForNewBlocksAndAfps(connection){
 
-    // Send data like this {route:'get_blocks_for_pod', fromRid:'RELATIVE_INDEX'}
+    // Send data like this {route:'get_blocks_for_pod', fromHeight:<>}
 
     let dataToSend = {
         
         route:'get_blocks_for_pod',
         
-        fromRid: HEIGHT_RELATIVE_INDEX
+        fromHeight: LOADED_UP_TO_BLOCK_HEIGHT
     }
 
     connection.sendUTF(JSON.stringify(dataToSend))
@@ -141,7 +141,7 @@ function sendRequestForNewBlocksAndAfps(connection){
 
 async function sendRequestForNewAefps(connection){
 
-    // Send data AEFP_RELATIVE_INDEX
+    // Send data LOADED_UP_TO_AEFP_INDEX
 
     let possibleAefp = await fetch()
 
@@ -160,9 +160,9 @@ client.on('connect',connection=>{
 
     console.log(`[*] Connected to ${CONFIGS.WEBSOCKET_SOURCE_URL}`)
 
-    console.log(`[*] Going to load blocks from ${HEIGHT_RELATIVE_INDEX}`)
+    console.log(`[*] Going to load blocks from ${LOADED_UP_TO_BLOCK_HEIGHT}`)
 
-    console.log(`[*] Going to load AEFPs from ${AEFP_RELATIVE_INDEX}`)
+    console.log(`[*] Going to load AEFPs from ${LOADED_UP_TO_AEFP_INDEX}`)
     
     sendRequestForNewBlocksAndAfps(connection)
 
@@ -174,15 +174,15 @@ client.on('connect',connection=>{
 
             let parsedData = JSON.parse(message.utf8Data) // structure is {'N':{block,afp},'N+1':{block,afp},...}            
 
-            // Just parse, store and increase the RELATIVE_INDEX
+            // Just parse, store and increase the relative height
 
             // Set mutex here
 
             let atomicBatch = DATABASE.batch()
 
-            for(let i = HEIGHT_RELATIVE_INDEX ; i <= HEIGHT_RELATIVE_INDEX + 500 ; i++){
+            for(let i = LOADED_UP_TO_BLOCK_HEIGHT ; i <= LOADED_UP_TO_BLOCK_HEIGHT + 500 ; i++){
 
-                let data = parsedData[`RID:${i}`]
+                let data = parsedData[`HEIGHT:${i}`]
                 
                 if(data){
 
@@ -200,11 +200,11 @@ client.on('connect',connection=>{
             
                         }
 
-                        console.log(`[*] Locally have untill RID: ${HEIGHT_RELATIVE_INDEX} => ${data.block.index}`)
+                        console.log(`[*] Locally have untill height: ${LOADED_UP_TO_BLOCK_HEIGHT} => ${data.block.index}`)
 
-                        HEIGHT_RELATIVE_INDEX++
+                        LOADED_UP_TO_BLOCK_HEIGHT++
         
-                        atomicBatch.put('RELATIVE_INDEX',HEIGHT_RELATIVE_INDEX)
+                        atomicBatch.put('LOADED_UP_TO_BLOCK_HEIGHT',LOADED_UP_TO_BLOCK_HEIGHT)
 
                     }
 

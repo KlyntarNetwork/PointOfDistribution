@@ -3,7 +3,7 @@ import { DATABASE, CONFIGS } from "./index.js"
 
 export let returnBlocksDataForPod = async(data,connection) => {
 
-    // Input data is {fromRid}
+    // Input data is {fromHeight}
     // Output data is {n:{block,afpForBlock},n+1:{block,afpForBlock},...,n+x:{block,afpForBlock}}
 
     let responseStructure = {}
@@ -11,17 +11,17 @@ export let returnBlocksDataForPod = async(data,connection) => {
     
     for(let i = 1 ; i < 500 ; i++){
 
-        let relativeIndex = data.fromRid+i
+        let relativeHeight = data.fromHeight+i
 
-        let blockIdByRelativeIndex = await DATABASE.get(relativeIndex).catch(()=>null)
+        let blockIdByRelativeHeight = await DATABASE.get(relativeHeight).catch(()=>null)
 
-        if(blockIdByRelativeIndex){
+        if(blockIdByRelativeHeight){
 
-            let block = await DATABASE.get(blockIdByRelativeIndex).catch(()=>null)
+            let block = await DATABASE.get(blockIdByRelativeHeight).catch(()=>null)
 
-            let afpForBlock = await DATABASE.get('AFP:'+blockIdByRelativeIndex).catch(()=>null)
+            let afpForBlock = await DATABASE.get('AFP:'+blockIdByRelativeHeight).catch(()=>null)
     
-            responseStructure[relativeIndex] = {block,afpForBlock}
+            responseStructure['HEIGHT:'+relativeHeight] = {block,afpForBlock}
             
         }
 
