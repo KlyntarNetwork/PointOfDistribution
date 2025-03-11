@@ -34,7 +34,9 @@ let DATABASE = level('DATABASE',{valueEncoding: 'json'})
 export {CONFIGS, DATABASE}
 
 
-let RELATIVE_INDEX = await DATABASE.get('RELATIVE_INDEX').catch(_=>0)
+let HEIGHT_RELATIVE_INDEX = await DATABASE.get('HEIGHT_RELATIVE_INDEX').catch(_=>0)
+
+let AEFP_RELATIVE_INDEX = await DATABASE.get('AEFP_RELATIVE_INDEX').catch(_=>0)
 
 
 let client = new WebSocketClient({})
@@ -127,7 +129,23 @@ function sendRequestForNewBlocksAndAfps(connection){
         
         route:'get_blocks_for_pod',
         
-        fromRid: RELATIVE_INDEX
+        fromRid: HEIGHT_RELATIVE_INDEX
+    }
+
+    connection.sendUTF(JSON.stringify(dataToSend))
+
+}
+
+
+function sendRequestForNewAefps(connection){
+
+    // Send data like this {route:'get_aefp_for_pod', fromRid:'AEFP_RELATIVE_INDEX'}
+
+    let dataToSend = {
+        
+        route:'get_aefp_for_pod',
+        
+        fromRid: AEFP_RELATIVE_INDEX
     }
 
     connection.sendUTF(JSON.stringify(dataToSend))
@@ -147,9 +165,13 @@ client.on('connect',connection=>{
 
     console.log(`[*] Connected to ${CONFIGS.SOURCE_URL}`)
 
-    console.log(`[*] Going to load from ${RELATIVE_INDEX}`)
+    console.log(`[*] Going to load blocks from ${HEIGHT_RELATIVE_INDEX}`)
+
+    console.log(`[*] Going to load AEFPs from ${AEFP_RELATIVE_INDEX}`)
     
     sendRequestForNewBlocksAndAfps(connection)
+
+    // sendRequestForNewAefps(connection)
 
     connection.on('message',async message=>{
 
@@ -163,7 +185,7 @@ client.on('connect',connection=>{
 
             let atomicBatch = DATABASE.batch()
 
-            for(let i = RELATIVE_INDEX ; i <= RELATIVE_INDEX + 500 ; i++){
+            for(let i = HEIGHT_RELATIVE_INDEX ; i <= HEIGHT_RELATIVE_INDEX + 500 ; i++){
 
                 let data = parsedData[`RID:${i}`]
                 
@@ -183,11 +205,11 @@ client.on('connect',connection=>{
             
                         }
 
-                        console.log(`[*] Locally have untill RID: ${RELATIVE_INDEX} => ${data.block.index}`)
+                        console.log(`[*] Locally have untill RID: ${HEIGHT_RELATIVE_INDEX} => ${data.block.index}`)
 
-                        RELATIVE_INDEX++
+                        HEIGHT_RELATIVE_INDEX++
         
-                        atomicBatch.put('RELATIVE_INDEX',RELATIVE_INDEX)
+                        atomicBatch.put('RELATIVE_INDEX',HEIGHT_RELATIVE_INDEX)
 
                     }
 
