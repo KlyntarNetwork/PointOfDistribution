@@ -11,7 +11,7 @@ export let returnBlocksDataForPod = async(data,connection) => {
     
     for(let i = 1 ; i < 500 ; i++){
 
-        let relativeHeight = data.fromHeight+i
+        let relativeHeight = data.fromHeight + i
 
         let blockIdByRelativeHeight = await DATABASE.get(relativeHeight).catch(()=>null)
 

@@ -54,7 +54,7 @@ let server = http.createServer({},(_,response)=>{
 
 })
 
-server.listen(CONFIGS.WEBSOCKET_PORT,CONFIGS.WEBSOCKET_INTERFACE,()=>
+server.listen(CONFIGS.WEBSOCKET_PORT, CONFIGS.WEBSOCKET_INTERFACE,()=>
 
     console.log(`[*] Websocket server for point of distribution was activated on ${CONFIGS.WEBSOCKET_INTERFACE}:${CONFIGS.WEBSOCKET_PORT}`)
     
