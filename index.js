@@ -2,6 +2,8 @@ import {returnBlocksDataForPod, returnBlocksRange} from './functions.js'
 
 import {fileURLToPath} from 'url'
 
+import fetch from 'node-fetch'
+
 import WS from 'websocket'
 
 import level from 'level'
@@ -116,7 +118,7 @@ podWebsocketServer.on('request',request=>{
 
 function connectToSource() {
 
-    client.connect(CONFIGS.SOURCE_URL, 'echo-protocol')
+    client.connect(CONFIGS.WEBSOCKET_SOURCE_URL, 'echo-protocol')
 
 }
 
@@ -137,18 +139,11 @@ function sendRequestForNewBlocksAndAfps(connection){
 }
 
 
-function sendRequestForNewAefps(connection){
+async function sendRequestForNewAefps(connection){
 
-    // Send data like this {route:'get_aefp_for_pod', fromRid:'AEFP_RELATIVE_INDEX'}
+    // Send data AEFP_RELATIVE_INDEX
 
-    let dataToSend = {
-        
-        route:'get_aefp_for_pod',
-        
-        fromRid: AEFP_RELATIVE_INDEX
-    }
-
-    connection.sendUTF(JSON.stringify(dataToSend))
+    let possibleAefp = await fetch()
 
 }
 
@@ -163,7 +158,7 @@ client.on('connectFailed', (error) => {
 
 client.on('connect',connection=>{
 
-    console.log(`[*] Connected to ${CONFIGS.SOURCE_URL}`)
+    console.log(`[*] Connected to ${CONFIGS.WEBSOCKET_SOURCE_URL}`)
 
     console.log(`[*] Going to load blocks from ${HEIGHT_RELATIVE_INDEX}`)
 
