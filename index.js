@@ -143,9 +143,13 @@ async function sendRequestForNewAefps(connection){
 
     // Send data LOADED_UP_TO_AEFP_INDEX
 
-    let possibleAefp = await fetch()
+    // let possibleAefp = await fetch()
 
 }
+
+
+setInterval(sendRequestForNewAefps,CONFIGS.AEFP_REQUEST_TIMEOUT)
+
 
 
 client.on('connectFailed', (error) => {
