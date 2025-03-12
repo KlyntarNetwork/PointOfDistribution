@@ -200,7 +200,9 @@ client.on('connect',connection=>{
             
                         }
 
-                        console.log(`[*] Locally have untill height: ${LOADED_UP_TO_BLOCK_HEIGHT} => ${data.block.index}`)
+                        atomicBatch.put(`RID:${LOADED_UP_TO_BLOCK_HEIGHT}`,blockID)
+
+                        console.log(`[*] Locally have untill relative height: ${LOADED_UP_TO_BLOCK_HEIGHT}`)
 
                         LOADED_UP_TO_BLOCK_HEIGHT++
         

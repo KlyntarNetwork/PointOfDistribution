@@ -13,7 +13,7 @@ export let returnBlocksDataForPod = async(data,connection) => {
 
         let relativeHeight = data.fromHeight + i
 
-        let blockIdByRelativeHeight = await DATABASE.get(relativeHeight).catch(()=>null)
+        let blockIdByRelativeHeight = await DATABASE.get('RID:'+relativeHeight).catch(()=>null)
 
         if(blockIdByRelativeHeight){
 
