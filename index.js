@@ -16,6 +16,7 @@ import fs from 'fs'
 
 
 
+let AEFP_MUTEX_FLAG = true
 
 let WebSocketServer = WS.server
 
@@ -39,6 +40,7 @@ export {CONFIGS, DATABASE}
 let LOADED_UP_TO_BLOCK_HEIGHT = await DATABASE.get('LOADED_UP_TO_BLOCK_HEIGHT').catch(_=>0)
 
 let LOADED_UP_TO_AEFP_INDEX = await DATABASE.get('LOADED_UP_TO_AEFP_INDEX').catch(_=>0)
+
 
 
 let client = new WebSocketClient({})
@@ -76,9 +78,9 @@ let server = http.createServer({},async(request,response)=>{
 
 })
 
-server.listen(CONFIGS.WEBSOCKET_PORT, CONFIGS.WEBSOCKET_INTERFACE,()=>
+server.listen(CONFIGS.NET_PORT, CONFIGS.NET_INTERFACE,()=>
 
-    console.log(`[*] Websocket server for point of distribution was activated on ${CONFIGS.WEBSOCKET_INTERFACE}:${CONFIGS.WEBSOCKET_PORT}`)
+    console.log(`[*] Websocket server for point of distribution was activated on ${CONFIGS.NET_INTERFACE}:${CONFIGS.NET_PORT}`)
     
 )
 
@@ -165,7 +167,55 @@ async function sendRequestForNewAefps(connection){
 
     // Send data LOADED_UP_TO_AEFP_INDEX
 
-    // let possibleAefp = await fetch()
+    if(AEFP_MUTEX_FLAG){
+
+        AEFP_MUTEX_FLAG = false
+
+        let possibleAefp = await fetch(CONFIGS.HTTP_SOURCE_URL+'/aggregated_epoch_finalization_proof/'+LOADED_UP_TO_AEFP_INDEX).catch(()=>null)
+
+        if(possibleAefp){
+    
+            let overviewIsOK =
+            
+            possibleAefp
+            &&
+            typeof possibleAefp === 'object'
+            &&
+            typeof possibleAefp.lastLeader === 'number'
+            &&
+            typeof possibleAefp.lastIndex === 'number'
+            &&
+            typeof possibleAefp.lastHash === 'string'
+            &&
+            typeof possibleAefp.hashOfFirstBlockByLastLeader === 'string'
+            &&
+            possibleAefp.proofs
+            &&
+            typeof possibleAefp.proofs === 'object'    
+    
+            if(overviewIsOK){
+    
+                let atomicBatch = DATABASE.batch()
+    
+                atomicBatch.put('AEFP:'+LOADED_UP_TO_AEFP_INDEX,possibleAefp)
+    
+                atomicBatch.put('LOADED_UP_TO_AEFP_INDEX',LOADED_UP_TO_AEFP_INDEX)
+    
+                await atomicBatch.write().then(()=>{
+    
+                    console.log(`[*] Loaded AEFP:${LOADED_UP_TO_AEFP_INDEX}`)
+    
+                    LOADED_UP_TO_AEFP_INDEX++
+    
+                }).catch(()=>{})
+    
+            }
+
+            AEFP_MUTEX_FLAG = true
+    
+        }
+
+    }
 
 }
 
