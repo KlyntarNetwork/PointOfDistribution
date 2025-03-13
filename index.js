@@ -46,11 +46,33 @@ let client = new WebSocketClient({})
 
 // Start API server
 
-let server = http.createServer({},(_,response)=>{
+let server = http.createServer({},async(request,response)=>{
 
-    response.writeHead(404)
+    if (request.method === 'GET' && request.url.startsWith('/aggregated_epoch_finalization_proof/')) {
 
-    response.end()
+        const urlParts = request.url.split('/')
+
+        const epochIndex = urlParts[2]
+
+        if (epochIndex) {
+
+            let aggregatedEpochFinalizationProof = await DATABASE.get(`AEFP:${epochIndex}`).catch(()=>null)
+        
+            if(aggregatedEpochFinalizationProof){
+    
+                response.end(JSON.stringify(aggregatedEpochFinalizationProof))
+    
+            } else response.end(JSON.stringify({err:'No AEFP'}))
+
+        } else response.end(JSON.stringify({ err: 'Missing id parameter' }))
+
+    } else {
+
+        response.writeHead(404)
+
+        response.end()
+
+    }
 
 })
 
