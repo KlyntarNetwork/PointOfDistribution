@@ -163,7 +163,7 @@ function sendRequestForNewBlocksAndAfps(connection){
 }
 
 
-async function sendRequestForNewAefps(connection){
+async function sendRequestForNewAefps(){
 
     // Send data LOADED_UP_TO_AEFP_INDEX
 
@@ -171,7 +171,7 @@ async function sendRequestForNewAefps(connection){
 
         AEFP_MUTEX_FLAG = false
 
-        let possibleAefp = await fetch(CONFIGS.HTTP_SOURCE_URL+'/aggregated_epoch_finalization_proof/'+LOADED_UP_TO_AEFP_INDEX).catch(()=>null)
+        let possibleAefp = await fetch(CONFIGS.HTTP_SOURCE_URL+'/aggregated_epoch_finalization_proof/'+LOADED_UP_TO_AEFP_INDEX).then(r=>r.json()).catch(()=>null)
 
         if(possibleAefp){
     
