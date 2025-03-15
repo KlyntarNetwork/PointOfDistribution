@@ -119,7 +119,7 @@ podWebsocketServer.on('request',request=>{
 
             } else if(data.route==='get_blocks_for_pod'){
 
-                returnBlocksDataForPod(data,connection)
+                returnBlocksDataForPod(data, connection)
 
             } else{
 

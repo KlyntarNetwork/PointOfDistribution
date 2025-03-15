@@ -9,7 +9,7 @@ export let returnBlocksDataForPod = async(data,connection) => {
     let responseStructure = {}
 
     
-    for(let i = 1 ; i < 500 ; i++){
+    for(let i = 0 ; i < 500 ; i++){
 
         let relativeHeight = data.fromHeight + i
 
@@ -21,11 +21,13 @@ export let returnBlocksDataForPod = async(data,connection) => {
 
             let afpForBlock = await DATABASE.get('AFP:'+blockIdByRelativeHeight).catch(()=>null)
     
-            responseStructure['HEIGHT:'+relativeHeight] = {block,afpForBlock}
-            
-        }
+            if(block && afpForBlock) {
 
-        else break
+                responseStructure[`HEIGHT:${relativeHeight}`] = {block, afpForBlock}
+
+            } else break
+            
+        } else break
 
     }
 
