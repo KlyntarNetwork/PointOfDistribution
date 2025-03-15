@@ -210,10 +210,10 @@ async function sendRequestForNewAefps(){
                 }).catch(()=>{})
     
             }
-
-            AEFP_MUTEX_FLAG = true
     
         }
+
+        AEFP_MUTEX_FLAG = true
 
     }
 
